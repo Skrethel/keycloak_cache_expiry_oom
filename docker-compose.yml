@@ -51,7 +51,7 @@ services:
         POSTGRES_PASSWORD: password
         
   keycloak1:
-      image: jboss/keycloak:13.0.0
+      image: jboss/keycloak:13.0.1
 #      image: jboss/keycloak:12.0.4
       networks:
       - mynet
@@ -68,6 +68,9 @@ services:
         CACHE_OWNERS_COUNT: 2
         KEYCLOAK_IMPORT: /opt/jboss/tools/testRealm.json
 #        JAVA_OPTS_APPEND: "-XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
+#        JAVA_OPTS_APPEND: "-XX:+UseConcMarkSweepGC"
+#        JAVA_OPTS_APPEND: "-Xmx256m"
+        JAVA_OPTS_APPEND: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787"
       entrypoint: /opt/jboss/tools/extended-docker-entrypoint.sh
       healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:9990"]        
@@ -77,17 +80,20 @@ services:
       ports:
         - 8081:8080
         - 9991:9990
+        - 8787:8787
       volumes:
         - ./keycloak/docker-entrypoint.sh:/opt/jboss/tools/extended-docker-entrypoint.sh
         - ./keycloak/configure-caches.cli:/opt/jboss/startup-scripts/configure-caches.cli        
         - ./keycloak/configure-cache-owners.cli:/opt/jboss/startup-scripts/configure-cache-owners.cli        
+        - ./keycloak/configure-logging.cli:/opt/jboss/startup-scripts/configure-logging.cli        
+ #       - ./keycloak/configure-cache-lifespan.cli:/opt/jboss/startup-scripts/configure-cache-lifespan.cli
         - ./keycloak/testRealm.json:/opt/jboss/tools/testRealm.json    
         - ./jmx-client:/copy
       depends_on:
         - postgres
         
   keycloak2:
-      image: jboss/keycloak:13.0.0
+      image: jboss/keycloak:13.0.1
 #      image: jboss/keycloak:12.0.4
       networks:
       - mynet
@@ -102,7 +108,10 @@ services:
         KEYCLOAK_PASSWORD: Pa55w0rd
         KEYCLOAK_STATISTICS: all
         CACHE_OWNERS_COUNT: 2
-        JAVA_OPTS_APPEND: "-XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
+#        JAVA_OPTS_APPEND: "-XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
+#        JAVA_OPTS_APPEND: "-XX:+UseConcMarkSweepGC"
+#        JAVA_OPTS_APPEND: "-Xmx256m"
+        JAVA_OPTS_APPEND: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787"
       entrypoint: /opt/jboss/tools/extended-docker-entrypoint.sh
       healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:9990"]        
@@ -112,10 +121,13 @@ services:
       ports:
         - 8082:8080
         - 9992:9990
+        - 8788:8787
       volumes:
         - ./keycloak/docker-entrypoint.sh:/opt/jboss/tools/extended-docker-entrypoint.sh
         - ./keycloak/configure-caches.cli:/opt/jboss/startup-scripts/configure-caches.cli        
         - ./keycloak/configure-cache-owners.cli:/opt/jboss/startup-scripts/configure-cache-owners.cli        
+        - ./keycloak/configure-logging.cli:/opt/jboss/startup-scripts/configure-logging.cli        
+#        - ./keycloak/configure-cache-lifespan.cli:/opt/jboss/startup-scripts/configure-cache-lifespan.cli
       depends_on:
           keycloak1:
             condition: service_healthy    
