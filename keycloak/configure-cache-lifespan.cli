@@ -1,0 +1,9 @@
+embed-server --server-config=standalone-ha.xml --std-out=echo
+batch
+# activate expiration
+/subsystem=infinispan/cache-container=keycloak/distributed-cache=sessions/component=expiration: add(lifespan=660000,interval=10000)
+/subsystem=infinispan/cache-container=keycloak/distributed-cache=clientSessions/component=expiration: add(lifespan=660000,interval=10000)
+run-batch
+stop-embedded-server
+
+

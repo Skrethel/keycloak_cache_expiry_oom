@@ -1,0 +1,13 @@
+embed-server --server-config=standalone-ha.xml --std-out=echo
+batch
+# activate replication
+#/subsystem=logging/logger=org.infinispan.interceptors.impl.CallInterceptor:add()
+#/subsystem=logging/logger=org.infinispan.interceptors.impl.CallInterceptor:write-attribute(name=level, value=TRACE)
+#/subsystem=logging/logger=org.infinispan.interceptors.impl.CallInterceptor:add-handler(name=CONSOLE)
+/subsystem=logging/logger=infinispan.core.src.main.java.org.infinispan.expiration:add()
+/subsystem=logging/logger=infinispan.core.src.main.java.org.infinispan.expiration:write-attribute(name=level, value=TRACE)
+/subsystem=logging/logger=infinispan.core.src.main.java.org.infinispan.expiration:add-handler(name=CONSOLE)
+run-batch
+stop-embedded-server
+
+
