@@ -8,5 +8,6 @@ Start dockers.
 
 `docker-compose up`
 
-Once started query keycloak metrics to observer that Old Gen constantly increases.
+Once dockers are started, query keycloak metrics to observe that Old Gen constantly increases.
+
 `curl -sS localhost:9991/metrics | grep vendor_memoryPool_usage_bytes | grep "G1 Old Gen"`
