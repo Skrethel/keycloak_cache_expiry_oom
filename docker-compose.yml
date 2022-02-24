@@ -58,7 +58,7 @@ services:
  #       - ./keycloak/configure-caches.cli:/opt/jboss/startup-scripts/configure-caches.cli        
  #      - ./keycloak/configure-cache-owners.cli:/opt/jboss/startup-scripts/configure-cache-owners.cli        
         - ./keycloak/configure-logging.cli:/opt/jboss/startup-scripts/configure-logging.cli        
- #       - ./keycloak/configure-cache-lifespan.cli:/opt/jboss/startup-scripts/configure-cache-lifespan.cli
+#        - ./keycloak/configure-local-cache-lifespan.cli:/opt/jboss/startup-scripts/configure-local-cache-lifespan.cli
         - ./keycloak/testRealm.json:/opt/jboss/tools/testRealm.json    
         - ./jmx-client:/copy
       depends_on:
