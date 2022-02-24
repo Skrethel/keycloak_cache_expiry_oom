@@ -1,9 +1,5 @@
 version: '3'
 
-volumes:
-  postgres_data:
-      driver: local
-      
 networks:
   mynet:
     driver: bridge
@@ -15,49 +11,30 @@ services:
       - mynet
     hostname: test
     entrypoint: /test/test-script.sh
-#    entrypoint: tail -f /dev/null
     volumes:
         - ./single_auth_request.sh:/test/single_auth_request.sh
         - ./test-script.sh:/test/test-script.sh
     depends_on:
-      - haproxy
-  
-  haproxy:
-    image: haproxy:2.3
-    networks:
-      - mynet
-    hostname: haproxy
-    volumes:
-      - "./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg"
-    ports:
-      - "8080:80"
-      - "8404:8404"
-      - "9999:9999"
-    depends_on:
-      keycloak1:
-        condition: service_healthy    
-      keycloak2:
+      keycloak:
         condition: service_healthy    
       
-  postgres:
-      image: postgres
+  mysql:
+      image: mysql:5.7
       networks:
       - mynet
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
       environment:
-        POSTGRES_DB: keycloak
-        POSTGRES_USER: keycloak
-        POSTGRES_PASSWORD: password
+        MYSQL_DATABASE: keycloak
+        MYSQL_USER: keycloak
+        MYSQL_PASSWORD: password
+        MYSQL_ROOT_PASSWORD: password
         
-  keycloak1:
-      image: jboss/keycloak:13.0.1
-#      image: jboss/keycloak:12.0.4
+  keycloak:
+      image: jboss/keycloak:15.1.1
       networks:
       - mynet
       environment:
-        DB_VENDOR: POSTGRES
-        DB_ADDR: postgres
+        DB_VENDOR: MYSQL
+        DB_ADDR: mysql
         DB_DATABASE: keycloak
         DB_USER: keycloak
         DB_SCHEMA: public
@@ -65,12 +42,7 @@ services:
         KEYCLOAK_USER: admin
         KEYCLOAK_PASSWORD: Pa55w0rd
         KEYCLOAK_STATISTICS: all
-        CACHE_OWNERS_COUNT: 2
         KEYCLOAK_IMPORT: /opt/jboss/tools/testRealm.json
-#        JAVA_OPTS_APPEND: "-XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
-#        JAVA_OPTS_APPEND: "-XX:+UseConcMarkSweepGC"
-#        JAVA_OPTS_APPEND: "-Xmx256m"
-        JAVA_OPTS_APPEND: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787"
       entrypoint: /opt/jboss/tools/extended-docker-entrypoint.sh
       healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:9990"]        
@@ -78,56 +50,17 @@ services:
         timeout: 5s
         retries: 5
       ports:
-        - 8081:8080
+        - 8481:8080
         - 9991:9990
         - 8787:8787
       volumes:
         - ./keycloak/docker-entrypoint.sh:/opt/jboss/tools/extended-docker-entrypoint.sh
-        - ./keycloak/configure-caches.cli:/opt/jboss/startup-scripts/configure-caches.cli        
-        - ./keycloak/configure-cache-owners.cli:/opt/jboss/startup-scripts/configure-cache-owners.cli        
+ #       - ./keycloak/configure-caches.cli:/opt/jboss/startup-scripts/configure-caches.cli        
+ #      - ./keycloak/configure-cache-owners.cli:/opt/jboss/startup-scripts/configure-cache-owners.cli        
         - ./keycloak/configure-logging.cli:/opt/jboss/startup-scripts/configure-logging.cli        
  #       - ./keycloak/configure-cache-lifespan.cli:/opt/jboss/startup-scripts/configure-cache-lifespan.cli
         - ./keycloak/testRealm.json:/opt/jboss/tools/testRealm.json    
         - ./jmx-client:/copy
       depends_on:
-        - postgres
+        - mysql
         
-  keycloak2:
-      image: jboss/keycloak:13.0.1
-#      image: jboss/keycloak:12.0.4
-      networks:
-      - mynet
-      environment:
-        DB_VENDOR: POSTGRES
-        DB_ADDR: postgres
-        DB_DATABASE: keycloak
-        DB_USER: keycloak
-        DB_SCHEMA: public
-        DB_PASSWORD: password
-        KEYCLOAK_USER: admin
-        KEYCLOAK_PASSWORD: Pa55w0rd
-        KEYCLOAK_STATISTICS: all
-        CACHE_OWNERS_COUNT: 2
-#        JAVA_OPTS_APPEND: "-XX:+UnlockExperimentalVMOptions -XX:+UseZGC"
-#        JAVA_OPTS_APPEND: "-XX:+UseConcMarkSweepGC"
-#        JAVA_OPTS_APPEND: "-Xmx256m"
-        JAVA_OPTS_APPEND: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8787"
-      entrypoint: /opt/jboss/tools/extended-docker-entrypoint.sh
-      healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:9990"]        
-        interval: 30s
-        timeout: 5s
-        retries: 5
-      ports:
-        - 8082:8080
-        - 9992:9990
-        - 8788:8787
-      volumes:
-        - ./keycloak/docker-entrypoint.sh:/opt/jboss/tools/extended-docker-entrypoint.sh
-        - ./keycloak/configure-caches.cli:/opt/jboss/startup-scripts/configure-caches.cli        
-        - ./keycloak/configure-cache-owners.cli:/opt/jboss/startup-scripts/configure-cache-owners.cli        
-        - ./keycloak/configure-logging.cli:/opt/jboss/startup-scripts/configure-logging.cli        
-#        - ./keycloak/configure-cache-lifespan.cli:/opt/jboss/startup-scripts/configure-cache-lifespan.cli
-      depends_on:
-          keycloak1:
-            condition: service_healthy    

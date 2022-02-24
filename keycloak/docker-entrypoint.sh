@@ -1,5 +1,4 @@
 #!/bin/sh
+set -x
 
-/opt/jboss/keycloak/bin/add-user.sh jmxuser password
-
-/opt/jboss/tools/docker-entrypoint.sh
+bash -x /opt/jboss/tools/docker-entrypoint.sh --server-config=standalone.xml
